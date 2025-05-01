@@ -15,10 +15,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
 def main():
+    def main():
     st.set_page_config(page_title="Panel Strava", layout="wide")
 
-    sb = get_supabase()
-    params = st.query_params          # sustituye a experimental_get_query_params
+    sb = get_supabase()          # ① definir sb
+    params = st.query_params     # ② luego ya consultas la URL
 
     # 1) FLUJO OAUTH ──────────────────────────────────────────────
     if "code" in params:
