@@ -9,6 +9,11 @@ import os, requests
 CLIENT_ID = os.environ.get("STRAVA_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("STRAVA_CLIENT_SECRET")
 
+import os, requests
+
+CLIENT_ID = os.environ.get("STRAVA_CLIENT_ID")
+CLIENT_SECRET = os.environ.get("STRAVA_CLIENT_SECRET")
+
 def exchange_code(code):
     res = requests.post(
         "https://www.strava.com/oauth/token",
@@ -20,13 +25,10 @@ def exchange_code(code):
         },
         timeout=15,
     )
-
-    # ——— SIEMPRE enseñamos el cuerpo, aunque la petición no sea 200
+    # 👇  Esto imprime siempre el cuerpo que nos manda Strava
     print("⛔️ Strava reply:", res.status_code, res.text[:600])
 
-    #  ⬇️ mantiene la excepción para que Streamlit la capture
-      
-    res.raise_for_status()
+    res.raise_for_status()          # deja que Streamlit marque el error
     return res.json()
 
 def refresh_token(refresh_token):
