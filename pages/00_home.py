@@ -38,7 +38,7 @@ def ensure_token(row):
 def main():
     st.title("Panel de análisis Strava (multi‑ciclista)")
 
-    params = st.experimental_get_query_params()
+    params = st.query_params  
     if "code" in params:
         code = params["code"][0]
         tokens = exchange_code(code, REDIRECT_URI)
