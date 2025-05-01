@@ -39,12 +39,15 @@ def main():
     st.title("Panel de análisis Strava (multi‑ciclista)")
 
     params = st.query_params  
-    if "code" in params:
-        code = params["code"][0]
-        tokens = exchange_code(code)
-        store_tokens(tokens)
-        st.success("Cuenta conectada. Pulsa F5 o recarga la página.")
-        st.stop()
+   if "code" in params:
+    code = params["code"][0] if isinstance(params["code"], list) else params["code"]
+    tokens = exchange_code(code)          # ← tu función ya ok
+    store_tokens(tokens)                  # ← guardas en Supabase
+
+    # 🟢  ¡Intercambio realizado!  Limpia la URL para que no vuelva a intentarlo
+    st.experimental_set_query_params()    # quita ?code=...
+    st.success("Cuenta conectada; recarga en curso…")
+    st.rerun()                            # arranca la app “limpia”
 
     coach_email = os.environ.get("COACH_EMAIL", "")
 
