@@ -41,7 +41,7 @@ def main():
     params = st.query_params  
     if "code" in params:
         code = params["code"][0]
-        tokens = exchange_code(code, REDIRECT_URI)
+        tokens = exchange_code(code)
         store_tokens(tokens)
         st.success("Cuenta conectada. Pulsa F5 o recarga la página.")
         st.stop()
