@@ -1,86 +1,40 @@
-import os, sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-import streamlit as st
-import pandas as pd
+import os, sys, time, streamlit as st, pandas as pd
 from utils.db import get_supabase
-from utils.strava import get_activities, exchange_code, refresh_token
-import os, time, datetime
+from utils.strava import exchange_code, get_activities, refresh_token
+from utils import store_tokens, load_metrics   # si tus utilidades las tienes así
 
-st.set_page_config(page_title="Análisis Strava", layout="wide")
+# ----- si tu archivo antes tenía más import, vuelve a añadirlos -----
 
-sb = get_supabase()
-
-CLIENT_ID = os.environ.get("STRAVA_CLIENT_ID")
-REDIRECT_URI = os.environ.get("REDIRECT_URI", "")
-
-def store_tokens(tokens):
-    sb.table("athletes").upsert({
-        "strava_id": tokens["athlete"]["id"],
-        "firstname": tokens["athlete"]["firstname"],
-        "lastname": tokens["athlete"]["lastname"],
-        "access_token": tokens["access_token"],
-        "refresh_token": tokens["refresh_token"],
-        "expires_at": tokens["expires_at"]
-    }, on_conflict="strava_id").execute()
-
-def ensure_token(row):
-    if row["expires_at"] > int(time.time()):
-        return row["access_token"]
-    new = refresh_token(row["refresh_token"])
-    sb.table("athletes").update({
-        "access_token": new["access_token"],
-        "refresh_token": new["refresh_token"],
-        "expires_at": new["expires_at"]
-    }).eq("strava_id", row["strava_id"]).execute()
-    return new["access_token"]
+# –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+#  Ajuste para que Python encuentre 'utils/' aunque este archivo
+#  siga dentro de pages/. Si ya moviste app.py a la raíz, puedes borrar
+#  las dos líneas siguientes.
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
 def main():
-    st.title("Panel de análisis Strava (multi‑ciclista)")
+    st.set_page_config(page_title="Panel Strava", layout="wide")
 
-      params = st.query_params          # antes st.experimental_get_query_params()
+    sb = get_supabase()
+    params = st.query_params          # sustituye a experimental_get_query_params
 
+    # 1) FLUJO OAUTH ──────────────────────────────────────────────
     if "code" in params:
         raw_code = params["code"]
         code = raw_code[0] if isinstance(raw_code, list) else raw_code
 
         tokens = exchange_code(code)
-        store_tokens(tokens)
+        store_tokens(tokens)          # graba access/refresh en Supabase
 
-        # Limpia la URL para no reutilizar el code
+        # Limpia la URL – evita reutilizar el code y el 400 “invalid”
         st.experimental_set_query_params()
         st.success("Cuenta conectada; recargando…")
         st.rerun()
-        return                     # ← ahora SÍ está dentro de main
+        return                        # ← dentro de main, 8 espacios de sangría
 
-
-    coach_email = os.environ.get("COACH_EMAIL", "")
-
-    email = st.text_input("Introduce tu correo (si eres el coach pon el tuyo):")
-
-    athletes = sb.table("athletes").select("*").execute().data
-
-    if email == coach_email and athletes:
-        options = {f"{a['firstname']} {a['lastname']}": a for a in athletes}
-        seleccionado = st.sidebar.selectbox("Selecciona ciclista", list(options))
-        athlete = options[seleccionado]
-    else:
-        # intenta buscar en athletes
-        athlete = next((a for a in athletes if a.get("email")==email), None)
-        if not athlete:
-            login_url = f"https://www.strava.com/oauth/authorize?client_id={CLIENT_ID}&response_type=code&redirect_uri={REDIRECT_URI}&scope=read,activity:read_all&approval_prompt=auto"
-            st.markdown(f"[Iniciar sesión con Strava]({login_url})")
-            st.stop()
-
-    access_token = ensure_token(athlete)
-    acts = get_activities(access_token, per_page=50)
-    df = pd.DataFrame(acts)
-    if df.empty:
-        st.info("Sin actividades.")
-        return
-    st.subheader("Últimas actividades")
-    st.dataframe(df[["name","start_date_local","distance","moving_time","average_watts"]])
-    st.map(df.rename(columns={"start_latlng":"latlon"})["latlon"].dropna().explode().dropna().apply(lambda x: {"lat": x[0], "lon": x[1]}) if "start_latlng" in df.columns else df.head(0))
+    # 2) CARGA NORMAL DE LA APP ──────────────────────────────────
+    # aquí pones tu selector de ciclista, gráficos, etc.
+    st.write("Página principal ya sin ?code= en la URL")
 
 if __name__ == "__main__":
     main()
