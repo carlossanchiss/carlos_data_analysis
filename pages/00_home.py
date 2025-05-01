@@ -25,7 +25,7 @@ def main() -> None:
         st.session_state["strava_id"] = tokens["athlete"]["id"]
 
         # elimina ?code= de la URL y recarga sin él
-        st.experimental_set_query_params()
+        st.query_params.clear()
         st.success("Cuenta conectada; recargando…")
         st.rerun()
         return
