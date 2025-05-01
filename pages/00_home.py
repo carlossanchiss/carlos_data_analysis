@@ -1,3 +1,5 @@
+import os, sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import os, sys, time, streamlit as st, pandas as pd
 from utils.db import get_supabase
 from utils.strava import exchange_code, get_activities, refresh_token
