@@ -10,7 +10,6 @@ CLIENT_ID = os.environ.get("STRAVA_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("STRAVA_CLIENT_SECRET")
 
 def exchange_code(code):
-    """Intercambia el 'code' de Strava por access/refresh token."""
     res = requests.post(
         "https://www.strava.com/oauth/token",
         data={
@@ -18,22 +17,15 @@ def exchange_code(code):
             "client_secret": CLIENT_SECRET,
             "code": code,
             "grant_type": "authorization_code",
-            # ↳ NO enviamos redirect_uri por si no coincide
         },
         timeout=15,
     )
 
-    # ① Mostramos el cuerpo completo, útil para logs
-    print("⛔️ Strava reply:", res.status_code, res.text[:500])
+    # ——— SIEMPRE enseñamos el cuerpo, aunque la petición no sea 200
+    print("⛔️ Strava reply:", res.status_code, res.text[:600])
 
-    # ② Si no es 200, levanta la excepción para que Streamlit la capture
-    res.raise_for_status()
-    return res.json()
-# 👇 NUEVO para depurar
-    print("⛔️ Strava token exchange response:", res.status_code, res.text)
-    res.raise_for_status()
-    return res.json()
-    
+    #  ⬇️ mantiene la excepción para que Streamlit la capture
+      
     res.raise_for_status()
     return res.json()
 
