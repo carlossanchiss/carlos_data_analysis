@@ -1,5 +1,4 @@
 streamlit>=1.33
-pandas
-requests
 supabase
-python-dotenv
+requests
+pandas
