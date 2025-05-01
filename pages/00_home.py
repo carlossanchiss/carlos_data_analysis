@@ -38,21 +38,20 @@ def ensure_token(row):
 def main():
     st.title("Panel de análisis Strava (multi‑ciclista)")
 
-    params = st.query_params          # o st.experimental_get_query_params()
+      params = st.query_params          # antes st.experimental_get_query_params()
 
-if "code" in params:
-    # ── nivel 4 espacios
-    raw_code = params["code"]
-    code = raw_code[0] if isinstance(raw_code, list) else raw_code
+    if "code" in params:
+        raw_code = params["code"]
+        code = raw_code[0] if isinstance(raw_code, list) else raw_code
 
-    tokens = exchange_code(code)      # tu función
-    store_tokens(tokens)              # guardar en Supabase
+        tokens = exchange_code(code)
+        store_tokens(tokens)
 
-    # Limpia la URL para que el code no se reutilice:
-    st.experimental_set_query_params()  # ← borra ?code=...
-
-    st.success("Cuenta conectada; recargando…")
-    st.rerun()                          # reinicia la app sin el parámetro
+        # Limpia la URL para no reutilizar el code
+        st.experimental_set_query_params()
+        st.success("Cuenta conectada; recargando…")
+        st.rerun()
+        return                     # ← ahora SÍ está dentro de main
 
 
     coach_email = os.environ.get("COACH_EMAIL", "")
