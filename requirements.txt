@@ -1,4 +1,10 @@
 streamlit>=1.33
-supabase
-requests
 pandas
+numpy
+python-dateutil
+supabase-py
+stravalib
+scipy
+pyod
+prophet
+openai
