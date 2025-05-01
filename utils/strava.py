@@ -12,6 +12,11 @@ def exchange_code(code, redirect_uri):
         "grant_type": "authorization_code",
         "redirect_uri": redirect_uri
     })
+# 👇 NUEVO para depurar
+    print("⛔️ Strava token exchange response:", res.status_code, res.text)
+    res.raise_for_status()
+    return res.json()
+    
     res.raise_for_status()
     return res.json()
 
