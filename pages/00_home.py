@@ -36,7 +36,37 @@ def main():
 
     # 2) CARGA NORMAL DE LA APP ──────────────────────────────────
     # aquí pones tu selector de ciclista, gráficos, etc.
-    st.write("Página principal ya sin ?code= en la URL")
+    # ---------------------------------------------------------
+# 1) Identifica al usuario actual en la tabla athletes
+user = sb.table("athletes").select("*").eq("access_token", tokens["access_token"]).single().execute().data
+strava_id = user["strava_id"]
+
+# 2) Si eres el entrenador (COACH_EMAIL), muestra selector
+if user["coach_email"] == st.secrets["COACH_EMAIL"]:
+    athletes = sb.table("athletes").select("strava_id,firstname,lastname").execute().data
+    opciones = {f"{a['firstname']} {a['lastname']}": a["strava_id"] for a in athletes}
+    nombre = st.sidebar.selectbox("Selecciona ciclista", opciones.keys())
+    strava_id = opciones[nombre]
+
+# 3) Carga y muestra métricas
+df = load_metrics(strava_id)
+
+if df.empty:
+    st.info("Sin actividades todavía 😅")
+else:
+    st.subheader("Últimas actividades")
+    st.dataframe(df[["name", "date", "distance", "moving_time", "average_watts"]])
+
+    st.subheader("Mapa")
+    if {"start_latitude", "start_longitude"}.issubset(df.columns):
+        st.map(
+            df.rename(columns={"start_latitude": "lat", "start_longitude": "lon"})[["lat", "lon"]]
+        )
+
+    st.subheader("Curva de potencia (TOP 10)")
+    top10 = df.nlargest(10, "max_power")[["name", "max_power"]].set_index("name")
+    st.bar_chart(top10)
+# ---------------------------------------------------------
 
 if __name__ == "__main__":
     main()
