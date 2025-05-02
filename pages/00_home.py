@@ -31,7 +31,7 @@ if "code" in st.query_params:
         "lastname": a.lastname,
         "access_token": token["access_token"],
         "refresh_token": token["refresh_token"],
-        "expires_at": token["expires_at"],
+         "expires_at":    int(tok["expires_at"]),   # ← convierte a int
         "coach_email": COACH,        # puedes cambiar esto si hay multi‑coach
     }, on_conflict="strava_id").execute()
     st.success("Cuenta vinculada. Recarga la página.")
