@@ -2,9 +2,9 @@ streamlit>=1.33
 pandas
 numpy
 python-dateutil
-supabase==2.3.3
+supabase==2.3.3        # ← nueva línea
 stravalib
 scipy
 pyod
-# prophet  ← (aún comentado si antes lo quitaste)
 openai
+# prophet              # opcional; coméntalo si da problemas
