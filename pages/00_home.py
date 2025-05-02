@@ -1,3 +1,5 @@
+import sys, pathlib
+sys.path.append(str(pathlib.Path(__file__).resolve().parent.parent))
 import streamlit as st, pandas as pd, os, datetime
 from urllib.parse import urlencode
 from utils.db import sb
