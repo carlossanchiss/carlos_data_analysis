@@ -22,21 +22,31 @@ def login_btn():
     st.markdown(f"[**Iniciar sesión con Strava**]({url})", unsafe_allow_html=True)
 
 # Recibir el ?code=
+# ── Manejo del retorno OAuth de Strava ─────────────────────────
 if "code" in st.query_params:
-    token = exchange(st.query_params["code"])
-    a = token["athlete"]
-    sup.table("athletes").upsert({
-        "strava_id": a.id,
-        "firstname": a.firstname,
-        "lastname": a.lastname,
-        "access_token": token["access_token"],
-        "refresh_token": token["refresh_token"],
-         "expires_at":    int(tok["expires_at"]),   # ← convierte a int
-        "coach_email": COACH,        # puedes cambiar esto si hay multi‑coach
-    }, on_conflict="strava_id").execute()
+    code = st.query_params["code"]              # <— código temporal que envía Strava
+
+    # 1. Intercambiar el code por tokens y datos de atleta
+    tok = exchange(code)                        # dict con access_token, refresh_token, expires_at, athlete
+    ath = tok["athlete"]                        # objeto Athlete de stravalib
+
+    # 2. Guardar / actualizar en Supabase
+    sup.table("athletes").upsert(
+        {
+            "strava_id":   ath.id,
+            "firstname":   ath.firstname,
+            "lastname":    ath.lastname,
+            "access_token":  tok["access_token"],
+            "refresh_token": tok["refresh_token"],
+            "expires_at":    int(tok["expires_at"]),   # ← bigint requerido
+            "coach_email":   COACH or None,
+        },
+        on_conflict="strava_id",                # fusiona si ya existe
+    ).execute()
+
     st.success("Cuenta vinculada. Recarga la página.")
-    st.experimental_set_query_params()   # limpia la URL
-    st.stop()
+    st.experimental_set_query_params()         # limpia ?code= de la URL
+    st.stop()                                  # detiene la ejecución; la próxima recarga ya pasa del login
 
 # ── SELECCIÓN DE USUARIO ──────────────────────────────────────────
 email = st.sidebar.text_input("Tu email (coach usa el suyo):")
