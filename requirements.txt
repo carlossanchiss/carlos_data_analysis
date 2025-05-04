@@ -1,9 +1,7 @@
-streamlit>=1.33
+streamlit
 pandas
+matplotlib
 numpy
-python-dateutil
-supabase==2.4.3      # ← versión que corrige el parámetro proxy
-openai               # instala httpx 0.27 (compatible)
-stravalib
-scipy
-pyod
+scikit-learn
+openai
+plotly
